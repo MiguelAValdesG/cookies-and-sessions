@@ -5,7 +5,8 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const passport = require('passport');
 
-const User = require('./models/user')
+const passportConfig = require('./config/passport')
+const ctrlUser = require('./controllers/user')
 
 const MONGO_URL = 'mongodb://127.0.0.1:27017/auth';
 const app = express();
@@ -21,20 +22,6 @@ mongoose.connection.on('error', (err) => {
   process.exit(1);
 })
 
-// const user = new User({
-//   email: 'mvaldes@vainilladev.com',
-//   name: 'MiguelAValdesG',
-//   password: '1234567'
-// })
-
-// user.save()
-//   .then(() => {
-//     console.log('User saved'); 
-//   })
-//   .catch((error) => {
-//     console.log(error);    
-//   })
-
 app.use(session({
   secret: 'THIS IS A SECRET. HERE WE CAN PUT A VARIABLE OF ENVIRONMENT',
   resave: true, // This property force that every call to server save all information of the session in the DB without matter if was change or no 
@@ -47,15 +34,17 @@ app.use(session({
 
 app.use(passport.initialize());
 app.use(passport.session());
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-app.get('/', (req, res) => {
-  req.session.count = req.session.count ? req.session.count + 1 : 1;
-  res.send(`Hello! You have watched this page: ${req.session.count} times`)
-})
 
+app.post('/signup', ctrlUser.signup);
+app.post('/login', ctrlUser.login);
+app.post('/logout', passportConfig.isAuth, ctrlUser.logout);
+
+app.get('/userInfo', passportConfig.isAuth, (req, res) => {
+  res.json(req.user)
+})
 
 app.listen(3000, () => {
   console.log('Listening in port 3000');
