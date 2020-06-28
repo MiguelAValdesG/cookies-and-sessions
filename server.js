@@ -2,6 +2,8 @@ const express = require('express');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session);
 const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const passport = require('passport');
 
 const User = require('./models/user')
 
@@ -42,6 +44,12 @@ app.use(session({
     autoReconnect: true
   })
 }))
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.get('/', (req, res) => {
   req.session.count = req.session.count ? req.session.count + 1 : 1;
