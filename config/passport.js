@@ -23,7 +23,7 @@ passport.use(new LocalStrategy(
           if (areEquals)
             return done(null, user);
           else
-            return done(null, false, {message: 'The passworn is invalid'});
+            return done(null, false, {message: 'The password is invalid'});
         })
       }
     }) 
