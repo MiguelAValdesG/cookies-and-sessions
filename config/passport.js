@@ -6,27 +6,29 @@ passport.serializeUser((user, done) => {
   done(null, user._id);
 })
 
-passport.deserializeUser((id, done) => {
-  User.findById(id, (err, user) => {
-    done(err, user);
-  })
+passport.deserializeUser(async (id, done) => {
+  try {
+    done(null, await User.findById(id));
+  } catch (err) {
+    done(err);
+  }
 })
 
 passport.use(new LocalStrategy(
   {usernameField: 'email'},
-  (email, password, done) => {
-    User.findOne({email}, (err, user) => {
-      if(!user)
-        return done(null, false , {message: `This email: ${email} is not registered`});
-      else {
-        user.passwordCompare(password, (err, areEquals) => {
-          if (areEquals)
-            return done(null, user);
-          else
-            return done(null, false, {message: 'The password is invalid'});
-        })
-      }
-    }) 
+  async (email, password, done) => {
+    try {
+      const user = await User.findOne({email});
+      if (!user)
+        return done(null, false, {message: `This email: ${email} is not registered`});
+
+      const areEquals = await user.passwordCompare(password);
+      if (areEquals)
+        return done(null, user);
+      return done(null, false, {message: 'The password is invalid'});
+    } catch (err) {
+      done(err);
+    }
   }
 ))
 
